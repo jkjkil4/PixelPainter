@@ -4,6 +4,41 @@ bool isContains(int num1, int num2){
     return ((num1|num2)==num1);
 }
 
+void MyAdjustSize(int& w, int& h, int adjustW, int adjustH){
+    if( w==0 || h==0 )
+        return;
+    double kW = static_cast<double>(adjustW)/w;
+    double kH = static_cast<double>(adjustH)/h;
+    w = kW > kH ? static_cast<int>( w*kH ) : adjustW;
+    h = kW > kH ? adjustH : static_cast<int>( h*kW );
+}
+double lerp(double v1, double v2, double sc){
+    return v1 + (v2 - v1)*sc;
+}
+double myBoundF(double min, double value, double max){
+    if( value < min )
+        value = min;
+    else if( value > max )
+        value = max;
+    return value;
+}
+QRgb mixColor(QRgb bjRgba, QRgb qjRgba){
+    int bjAlpha = qAlpha(bjRgba);
+    int qjAlpha = qAlpha(qjRgba);
+    if( qjAlpha == 0 ){
+        return bjRgba;
+    }else if(qjAlpha == 255){
+        return qjRgba;
+    }
+    int A = 255 - (255 - qjAlpha) * (255 - bjAlpha) / 255;
+    if( A == 0 )
+        return qRgba(0, 0, 0, 0);
+    int R = (qRed(bjRgba)*bjAlpha*(255 - qjAlpha)/255   + qRed(qjRgba)*qjAlpha)   / A;
+    int G = (qGreen(bjRgba)*bjAlpha*(255 - qjAlpha)/255 + qGreen(qjRgba)*qjAlpha) / A;
+    int B = (qBlue(bjRgba)*bjAlpha*(255 - qjAlpha)/255  + qBlue(qjRgba)*qjAlpha)  / A;
+    return qRgba(R, G, B, A);
+}
+
 void jDrawText(QPainter *p, QPoint pos, int flags, QString str, int xLimit, int yLimit){jDrawText(p,pos.x(),pos.y(),flags,str,xLimit,yLimit);}
 void jDrawText(QPainter *p, int x, int y, int flags, QString str, int xLimit, int yLimit){
     //字体

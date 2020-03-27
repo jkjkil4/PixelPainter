@@ -14,30 +14,34 @@
 #include "../myClass/myspinbox.h"
 #include "jheader.h"
 
+namespace _MyAlphaSelect {
+    class MyAlphaView;
+}
+
+//花里胡哨的透明度选择框
+class _MyAlphaSelect::MyAlphaView : public QWidget
+{
+protected:
+    void mousePressEvent(QMouseEvent *ev);
+    void mouseMoveEvent(QMouseEvent *ev);
+    void paintEvent(QPaintEvent *);
+
+public:
+    MyAlphaView(MyVars* vars, MySpinBox* spinBox);
+    void updateAlpha(int mouseX);
+
+    MyVars* vars = nullptr;
+    MySpinBox* spinBox = nullptr;
+
+    int xBefore = 1, xNow = 1;
+    bool limitRect = false;
+};
+
+
+//------------------------
 class MyAlphaSelect : public QGroupBox
 {
 private:
-    //花里胡哨的透明度选择框
-    class MyAlphaView : public QWidget
-    {
-    protected:
-        void mousePressEvent(QMouseEvent *ev);
-        void mouseMoveEvent(QMouseEvent *ev);
-        void paintEvent(QPaintEvent *);
-
-    public:
-        MyAlphaView(MyVars* vars, MySpinBox* spinBox);
-        void updateAlpha(int mouseX);
-
-        MyVars* vars = nullptr;
-        MySpinBox* spinBox = nullptr;
-
-        int xBefore = 1, xNow = 1;
-        bool limitRect = false;
-    };
-//--------------------------
-//public slots:
-//    void slot_colorChanged();
 
 public:
     explicit MyAlphaSelect(MyVars* vars, QWidget *parent = nullptr);
@@ -46,7 +50,7 @@ public:
     QLabel* labelAlpha = new QLabel("Alpha");
     MySpinBox* spinBoxAlpha = new MySpinBox;
 
-    MyAlphaView* view;
+    _MyAlphaSelect::MyAlphaView* view = nullptr;
 
     MyVars* vars = nullptr;
 };

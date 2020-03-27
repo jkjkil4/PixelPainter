@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/guide">
+        <file>pic/big.png</file>
+        <file>pic/small.png</file>
+    </qresource>
+    <qresource prefix="/layers">
+        <file>pic/addLayer.png</file>
+        <file>pic/deleteLayer.png</file>
+        <file>pic/addMask.png</file>
+        <file>pic/deleteMask.png</file>
+    </qresource>
+    <qresource prefix="/other">
+        <file>pic/view.png</file>
+    </qresource>
+</RCC>

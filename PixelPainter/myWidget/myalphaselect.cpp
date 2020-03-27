@@ -1,11 +1,12 @@
 #include "myalphaselect.h"
 
 //--花里胡哨的透明度选择框---------
-MyAlphaSelect::MyAlphaView::MyAlphaView(MyVars* vars, MySpinBox* spinBox){
+using namespace _MyAlphaSelect;
+MyAlphaView::MyAlphaView(MyVars* vars, MySpinBox* spinBox){
     this->vars = vars;
     this->spinBox = spinBox;
 }
-void MyAlphaSelect::MyAlphaView::updateAlpha(int mouseX){
+void MyAlphaView::updateAlpha(int mouseX){
     xNow = qBound(0, mouseX-1, width()-2);
     int alpha = 255 - 255*xNow/(width()-2);
     vars->color.alpha = alpha;
@@ -13,15 +14,15 @@ void MyAlphaSelect::MyAlphaView::updateAlpha(int mouseX){
     limitRect = true;
     update(QRegion(xNow-1, 1, 4, height()-2) + QRegion(xBefore-1, 1, 4, height()-2));
 }
-void MyAlphaSelect::MyAlphaView::mousePressEvent(QMouseEvent *ev){
+void MyAlphaView::mousePressEvent(QMouseEvent *ev){
     parentWidget()->parentWidget()->setFocus();
     updateAlpha(ev->x());
 }
-void MyAlphaSelect::MyAlphaView::mouseMoveEvent(QMouseEvent *ev){
+void MyAlphaView::mouseMoveEvent(QMouseEvent *ev){
     parentWidget()->parentWidget()->setFocus();
     updateAlpha(ev->x());
 }
-void MyAlphaSelect::MyAlphaView::paintEvent(QPaintEvent *){
+void MyAlphaView::paintEvent(QPaintEvent *){
     int temp = xNow;
     QPainter p(this);
 
@@ -59,7 +60,7 @@ void MyAlphaSelect::MyAlphaView::paintEvent(QPaintEvent *){
 
 
 
-//----------上面的那个类是该类的嵌套类------
+//----------------------
 MyAlphaSelect::MyAlphaSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
     this->vars = vars;
     spinBoxAlpha->mySetMax(255);
@@ -68,6 +69,8 @@ MyAlphaSelect::MyAlphaSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
     view->setMinimumHeight(18);
     view->setMaximumHeight(18);
     setTitle("透明度");
+    setMaximumSize(183, 62);
+    setMinimumSize(183, 62);
 
     //布局
     QHBoxLayout* lay1 = new QHBoxLayout;

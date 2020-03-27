@@ -9,6 +9,11 @@
 
 bool isContains(int num1, int num2);
 
+void MyAdjustSize(int& w, int& h, int adjustW, int adjustH);
+double lerp(double v1, double v2, double sc);
+double myBoundF(double min, double value, double max);
+QRgb mixColor(QRgb bjRgba, QRgb qjRgba);
+
 void jDrawText(QPainter *p,QPoint pos, int flags, QString str,int xLimit=-1,int yLimit=-1);
 void jDrawText(QPainter *p,int x, int y, int flags, QString str,int xLimit=-1,int yLimit=-1);
 

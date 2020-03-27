@@ -1,14 +1,14 @@
 #include "mycolorselect.h"
 
 //色相选择-----------------------
-MyColorSelect::HueSelect::HueSelect(MyVars *vars, QWidget *updateWidget, QTimer *fakeSlot){
+using namespace _MyColorSelect;
+HueSelect::HueSelect(MyVars *vars, QWidget *updateWidget){
     this->vars = vars;
     this->updateWidget = updateWidget;
-    this->fakeSlot = fakeSlot;
     setMaximumSize(25,140);
     setMinimumSize(25,140);
 }
-void MyColorSelect::HueSelect::updateHue(int mouseY){
+void HueSelect::updateHue(int mouseY){
     int y = qBound(0, mouseY, height()-2);
     vars->color.h = 360*y/(height()-2);
     QColor col;
@@ -17,17 +17,17 @@ void MyColorSelect::HueSelect::updateHue(int mouseY){
     vars->color.solidG = col.green();
     vars->color.solidB = col.blue();
     update();
-    fakeSlot->start(0);
+    emit hueChanged();
 }
-void MyColorSelect::HueSelect::mousePressEvent(QMouseEvent *ev){
+void HueSelect::mousePressEvent(QMouseEvent *ev){
     parentWidget()->parentWidget()->setFocus();
     updateHue(ev->y());
 }
-void MyColorSelect::HueSelect::mouseMoveEvent(QMouseEvent *ev){
+void HueSelect::mouseMoveEvent(QMouseEvent *ev){
     parentWidget()->parentWidget()->setFocus();
     updateHue(ev->y());
 }
-void MyColorSelect::HueSelect::paintEvent(QPaintEvent *){
+void HueSelect::paintEvent(QPaintEvent *){
     QPainter p(this);
 
     QColor hsv;
@@ -47,14 +47,13 @@ void MyColorSelect::HueSelect::paintEvent(QPaintEvent *){
 
 
 //饱和度、明度选择
-MyColorSelect::SVSelect::SVSelect(MyVars *vars, QTimer *fakeSlot){
+SVSelect::SVSelect(MyVars *vars){
     this->vars = vars;
-    this->fakeSlot = fakeSlot;
     setMaximumSize(140,140);
     setMinimumSize(140,140);
     posNow = QPoint(width()-2, 0);
 }
-void MyColorSelect::SVSelect::updateSV(QPoint pos, bool updateAll = false){
+void SVSelect::updateSV(QPoint pos, bool updateAll = false){
     posNow = QPoint( qBound(0, pos.x(), width()-2), qBound(0, pos.y(), height()-2) );
     //得到颜色
     QColor col;
@@ -73,17 +72,17 @@ void MyColorSelect::SVSelect::updateSV(QPoint pos, bool updateAll = false){
         update(QRegion(posNow.x()-w, posNow.y()-w, 2*w, 2*w)+QRegion(posBefore.x()-w, posBefore.y()-w, 2*w, 2*w));
     }
 }
-void MyColorSelect::SVSelect::mousePressEvent(QMouseEvent *ev){
+void SVSelect::mousePressEvent(QMouseEvent *ev){
     parentWidget()->parentWidget()->setFocus();
     updateSV(ev->pos());
-    fakeSlot->start(0);
+    emit SVChanged();
 }
-void MyColorSelect::SVSelect::mouseMoveEvent(QMouseEvent *ev){
+void SVSelect::mouseMoveEvent(QMouseEvent *ev){
     parentWidget()->parentWidget()->setFocus();
     updateSV(ev->pos());
-    fakeSlot->start(0);
+    emit SVChanged();
 }
-void MyColorSelect::SVSelect::paintEvent(QPaintEvent *){
+void SVSelect::paintEvent(QPaintEvent *){
     QPoint temp = posNow;
     QPainter p(this);
 
@@ -104,25 +103,27 @@ void MyColorSelect::SVSelect::paintEvent(QPaintEvent *){
             p.fillRect( 1+i, 1+j, 1, 1, QColor(r,g,b) );
         }
     }
-    jDrawRecFrame(&p, 0, 0, width(), height(), 1, QColor(0,0,0));
     QColor col;
     col.setHsv( vars->color.h, 255*temp.x()/(width()-2), 255 - 255*temp.y()/(height()-2) );
     p.setPen(QPen(QColor(255-col.red(), 255-col.green(), 255-col.blue()), 3));
     p.drawEllipse(temp+QPoint(1,1), w-2, w-2);
+    jDrawRecFrame(&p, 0, 0, width(), height(), 1, QColor(0,0,0));
 
     posBefore = temp;
     limitRect = false;
 }
 
 
-//颜色选择---------(上面两个类是该类的嵌套类)--------------
+//颜色选择--------------------------------
 MyColorSelect::MyColorSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
     this->vars = vars;
     setTitle("颜色选择");
+    setMaximumSize(183, 234);
+    setMinimumSize(183, 234);
 
     //布局
-    svSelect = new SVSelect(vars, fakeSlotSV);
-    hueSelect = new HueSelect(vars, svSelect, fakeSlotHue);
+    svSelect = new SVSelect(vars/*, fakeSlotSV*/);
+    hueSelect = new HueSelect(vars, svSelect/*, fakeSlotHue*/);
     labels[0] = new QLabel("R");
     labels[1] = new QLabel("G");
     labels[2] = new QLabel("B");
@@ -176,16 +177,13 @@ MyColorSelect::MyColorSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
 
     setLayout(layMain);
 
-    //假槽
-    fakeSlotHue->setSingleShot(true);
-    fakeSlotSV->setSingleShot(true);
-    connect(fakeSlotHue, &QTimer::timeout, [=](){
+    //槽
+    connect(hueSelect, &HueSelect::hueChanged, [=](){
         needUpdateHue = true;
         if( !limitRateHue->isActive() )
             limitRateHue->start(20);
     });
-    fakeSlotSV->setSingleShot(true);
-    connect(fakeSlotSV, &QTimer::timeout, [=](){
+    connect(svSelect, &SVSelect::SVChanged, [=](){
         needUpdateSV = true;
         if( !limitRateSV->isActive() )
             limitRateSV->start(20);

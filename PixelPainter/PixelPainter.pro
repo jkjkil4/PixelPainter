@@ -25,22 +25,49 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        MyClass/mybutton.cpp \
         jheader.cpp \
         main.cpp \
+        myClass/myline.cpp \
+        myClass/mynumscrollbar.cpp \
         myClass/myspinbox.cpp \
+        myClass/myundoandredo.cpp \
+        myDialog/mynewimagedialog.cpp \
+        myTool/mytool_pen.cpp \
         myWidget/myalphaselect.cpp \
         myWidget/mycolorselect.cpp \
+        myWidget/myguideview.cpp \
+        myWidget/mylayersview.cpp \
+        myWidget/mytoolselect.cpp \
+        myWidget/myviewport.cpp \
+        mywidget.cpp \
         widget.cpp
 
 HEADERS += \
+        MyClass/mybutton.h \
         jheader.h \
+        myClass/myline.h \
+        myClass/mynumscrollbar.h \
         myClass/myspinbox.h \
+        myClass/myundoandredo.h \
         myClass/myvars.h \
+        myDialog/mynewimagedialog.h \
+        myTool/mytool.h \
+        myTool/mytool_pen.h \
+        myTool/mytools.h \
         myWidget/myalphaselect.h \
         myWidget/mycolorselect.h \
+        myWidget/myguideview.h \
+        myWidget/mylayersview.h \
+        myWidget/mytoolselect.h \
+        myWidget/myviewport.h \
+        mywidget.h \
         widget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    pic.qrc
