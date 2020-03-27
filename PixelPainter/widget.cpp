@@ -177,7 +177,7 @@ void Widget::slot_settings(){
 void Widget::slot_about(){
     QMessageBox::about(nullptr, "关于", "作者:\tjkjkil4"
                                 "\n邮箱:\t1173374788@qq.com"
-                                "\nGithub:\t暂无该项目的存储库"
+                                "\nGithub:\thttps://github.com/jkjkil4/PixelPainter"
                                 "\n\n使用Qt制作");
 }
 void Widget::slot_aboutQt(){
