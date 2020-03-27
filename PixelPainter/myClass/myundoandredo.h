@@ -2,6 +2,7 @@
 #define MYUNDOANDREDO_H
 
 #include <QFile>
+#include <QDir>
 #include <QDataStream>
 
 #include "myvars.h"

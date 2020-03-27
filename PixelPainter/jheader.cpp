@@ -67,10 +67,14 @@ void jDrawText(QPainter *p, int x, int y, int flags, QString str, int xLimit, in
     //fillRect(r,QColor(255,255,0));  //这是调试用的
     p->drawText(r,flags,str);
 }
-void jDrawRecFrame(QPainter *p,QRect rect,int width,QColor c){jDrawRecFrame(p,rect.x(),rect.y(),rect.width(),rect.height(),width,c);}
+
 void jDrawRecFrame(QPainter *p,int x,int y,int w,int h,int width,QColor c){
-    p->fillRect(x,y,w,width,c);
-    p->fillRect(x,y,width,h,c);
-    p->fillRect(x+w-width,y,width,h,c);
-    p->fillRect(x,y+h-width,w,width,c);
+    //顶部
+    p->fillRect(x, y, w, width, c);
+    //左侧
+    p->fillRect(x, y+width, width, h-width*2, c);
+    //右侧
+    p->fillRect(x+w-width, y+width, width, h-width*2, c);
+    //底部
+    p->fillRect(x, y+h-width, w, width, c);
 }

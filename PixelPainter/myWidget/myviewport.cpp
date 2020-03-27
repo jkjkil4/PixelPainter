@@ -91,7 +91,7 @@ void MyViewport::mousePressEvent(QMouseEvent *ev){
             QPointF posF = mousePosToImagePos(ev->pos());
             MyTool* tool = tools->currentTool();
             if(tool){
-                QRect rect = tool->paint((int)posF.x(), (int)posF.y(), vars->file.currentLayer(),
+                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), vars->file.currentLayer(),
                                 vars->color.getColor(), true);
                 updateViewImgByRect(rect);
                 if(!limitPaintUpdate->isActive()){
@@ -129,7 +129,7 @@ void MyViewport::mouseMoveEvent(QMouseEvent *ev){
             QPointF posF = mousePosToImagePos(ev->pos());
             MyTool* tool = tools->currentTool();
             if(tool){
-                QRect rect = tool->paint((int)posF.x(), (int)posF.y(), vars->file.currentLayer(),
+                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), vars->file.currentLayer(),
                                 vars->color.getColor());
                 updateViewImgByRect(rect);
                 if(!limitPaintUpdate->isActive()){

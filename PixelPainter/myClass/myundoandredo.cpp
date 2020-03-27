@@ -21,8 +21,12 @@ BlockImage::BlockImage(MyVars *vars, QImage *tmpImage, QImage *layerImage, QRect
     rect = QRect(rectLeft, rectTop, rectRight - rectLeft, rectBottom - rectTop);
     if(rect.width() <= 0 || rect.height() <= 0)
         return;
+    //创建文件夹
+    QDir dir;
+    if(!dir.mkdir("temp"))
+        return;
     //打开文件
-    QFile fileRedo(fileName + ".redo");
+    QFile fileRedo("temp/" + fileName + ".redo");
     if(fileRedo.open(QIODevice::WriteOnly)){
         QDataStream out(&fileRedo);
         //文件信息
@@ -35,7 +39,7 @@ BlockImage::BlockImage(MyVars *vars, QImage *tmpImage, QImage *layerImage, QRect
         //关闭文件
         fileRedo.close();
     }
-    QFile fileUndo(fileName + ".undo");
+    QFile fileUndo("temp/" + fileName + ".undo");
     if(fileUndo.open(QIODevice::WriteOnly)){
         QDataStream out(&fileUndo);
         //文件信息

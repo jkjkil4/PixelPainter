@@ -44,8 +44,8 @@ QRect MyTool_Pen::_paint(int x, int y, MyLayer *layer, QRgb col){
 //mousePos是鼠标在图像内的坐标    viewPos是图像的偏移坐标
 QRegion MyTool_Pen::_updateRect(QPointF mousePos, QPointF viewPos, int scale, QSize viewSize){
     int width = sizeScrBar->value;
-    int posXStart = (int)mousePos.x() - width/2;
-    int posYStart = (int)mousePos.y() - width/2;
+    int posXStart = myGetIntGrid(mousePos.x()) - width/2;
+    int posYStart = myGetIntGrid(mousePos.y()) - width/2;
     int vPosX = (posXStart - viewPos.x()) * scale / 100 + viewSize.width()/2;
     int vPosY = (posYStart - viewPos.y()) * scale / 100 + viewSize.height()/2;
     int scaledWidth = width * scale / 100;
