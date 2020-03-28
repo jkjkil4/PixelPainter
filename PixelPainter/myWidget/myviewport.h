@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QMouseEvent>
 #include <QTime>
+#include <QMessageBox>
 #include <cmath>
 
 #include <QMouseEvent>

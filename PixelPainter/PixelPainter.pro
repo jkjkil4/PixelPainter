@@ -33,6 +33,7 @@ SOURCES += \
         myClass/myspinbox.cpp \
         myClass/myundoandredo.cpp \
         myDialog/mynewimagedialog.cpp \
+        myTool/mytool.cpp \
         myTool/mytool_pen.cpp \
         myWidget/myalphaselect.cpp \
         myWidget/mycolorselect.cpp \

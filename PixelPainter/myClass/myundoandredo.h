@@ -15,15 +15,16 @@ namespace _MyUndoAndRedo {
 class _MyUndoAndRedo::Block
 {
 public:
-    virtual ~Block(){}
-    virtual bool undo();
-    virtual bool redo();
+    virtual ~Block() = 0;
+    virtual bool undo() = 0;
+    virtual bool redo() = 0;
 };
 
 class _MyUndoAndRedo::BlockImage : public _MyUndoAndRedo::Block
 {
 public:
     explicit BlockImage(MyVars *vars, QImage *tmpImage, QImage *layerImage, QRect rect, QString fileName);
+    ~BlockImage() override;
     bool undo() override;
     bool redo() override;
 

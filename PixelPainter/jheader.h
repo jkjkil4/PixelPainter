@@ -13,9 +13,9 @@ void MyAdjustSize(int& w, int& h, int adjustW, int adjustH);
 double lerp(double v1, double v2, double sc);
 double myBoundF(double min, double value, double max);
 QRgb mixColor(QRgb bjRgba, QRgb qjRgba);
-//inline int myGetGrid(int a, int b){
-//    return a < 0 ? a / b - 1 : a / b;
-//}
+template<typename T>inline void safeDelete(T*& p){
+    if (p) { delete p; p = nullptr; }
+}
 inline int myGetIntGrid(double a){
     return a < 0 ? (int)a - 1 : (int)a;
 }

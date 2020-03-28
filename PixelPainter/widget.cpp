@@ -93,7 +93,7 @@ void Widget::slot_newFile(){
         MyLayer *layer = new MyLayer("图层1", width, height, &ok, &strCatch);
         if( !ok ){
             QMessageBox::critical(nullptr, "错误", "创建失败\n"+strCatch);
-            delete layer;
+            safeDelete(layer);
             return;
         }
         vars.file.onDestroy();

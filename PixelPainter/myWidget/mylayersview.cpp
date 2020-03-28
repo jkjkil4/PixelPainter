@@ -384,7 +384,7 @@ void MyLayersView::newLayer(){
     MyLayer *layer = new MyLayer("图层"+QString::number(max + 1), file->imageWidth, file->imageHeight, &ok, &strCatch);
     if( !ok ){
         QMessageBox::critical(nullptr, "错误", "图层创建失败\n"+strCatch);
-        delete layer;
+        safeDelete(layer);
         return;
     }
     vars->file.layers.insert(layersView->currentIndex, layer);

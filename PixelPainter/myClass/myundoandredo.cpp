@@ -1,6 +1,8 @@
 #include "myundoandredo.h"
 
 using namespace _MyUndoAndRedo;
+Block::~Block(){}
+BlockImage::~BlockImage(){}
 
 BlockImage::BlockImage(MyVars *vars, QImage *tmpImage, QImage *layerImage, QRect rect, QString fileName){
     this->vars = vars;

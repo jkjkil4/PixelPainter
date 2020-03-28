@@ -13,21 +13,12 @@
 class MyTool
 {
 public:
-    explicit MyTool(MyVars *vars){
-        this->vars = vars;
-    }
-    virtual ~MyTool(){}
-    QRect paint(int x, int y, MyLayer *layer, QRgb col, bool force = false){
-        QPoint pos = QPoint(x, y);
-        if(colBefore == col && posBefore == pos && !force)
-            return QRect();
-        colBefore = col;
-        posBefore = pos;
-        return _paint(x, y, layer, col);
-    }
-    virtual QRect _paint(int x, int y, MyLayer *layer, QRgb col);
-    virtual QRegion _updateRect(QPointF mousePos, QPointF viewPos, int scale, QSize viewSize);
-    virtual void _drawTool(QPainter *p);
+    explicit MyTool(MyVars *vars);
+    virtual ~MyTool() = 0;
+    QRect paint(int x, int y, QImage *img, QRgb col, bool force = false);
+    virtual QRect _paint(int x, int y, QImage *img, QRgb col) = 0;
+    virtual QRegion _updateRect(QPointF mousePos, QPointF viewPos, int scale, QSize viewSize) = 0;
+    virtual void _drawTool(QPainter *p) = 0;
 
     MyVars *vars;
 

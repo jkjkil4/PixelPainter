@@ -22,19 +22,19 @@ MyTool_Pen::MyTool_Pen(MyVars *vars) : MyTool(vars) {
 MyTool_Pen::~MyTool_Pen(){
 
 }
-QRect MyTool_Pen::_paint(int x, int y, MyLayer *layer, QRgb col){
+QRect MyTool_Pen::_paint(int x, int y, QImage *img, QRgb col){
     int width = sizeScrBar->value;
     for(int j = 0; j < width; j++){
         int pixelY = j - width/2 + y;
         for(int i = 0; i < width; i++){
             int pixelX = i - width/2 + x;
-            if(pixelX >= 0 && pixelX < layer->img.width() && pixelY >= 0 && pixelY < layer->img.height()){
+            if(pixelX >= 0 && pixelX < img->width() && pixelY >= 0 && pixelY < img->height()){
                 QRgb drawColor = col;
                 if( vars->color.isMix ){
-                    QRgb bgCol = layer->img.pixel(pixelX, pixelY);
+                    QRgb bgCol = img->pixel(pixelX, pixelY);
                     drawColor = mixColor(bgCol, drawColor);
                 }
-                layer->img.setPixel(pixelX, pixelY, drawColor);
+                img->setPixel(pixelX, pixelY, drawColor);
             }
         }
     }

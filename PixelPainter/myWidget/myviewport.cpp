@@ -90,8 +90,17 @@ void MyViewport::mousePressEvent(QMouseEvent *ev){
         if(!vars->file.isNull){
             QPointF posF = mousePosToImagePos(ev->pos());
             MyTool* tool = tools->currentTool();
+            if(tempImg)
+                safeDelete(tempImg);
+            try {
+                tempImg = new QImage(vars->file.imageWidth, vars->file.imageHeight, QImage::Format_ARGB32);
+            } catch(std::bad_alloc &memExp) {
+                QMessageBox::critical(nullptr, "错误", "绘制失败\n" + QString(memExp.what()));
+                return;
+            }
+            tempImg->fill(QColor(0, 0, 0, 0));
             if(tool){
-                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), vars->file.currentLayer(),
+                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), tempImg,
                                 vars->color.getColor(), true);
                 updateViewImgByRect(rect);
                 if(!limitPaintUpdate->isActive()){
@@ -128,8 +137,8 @@ void MyViewport::mouseMoveEvent(QMouseEvent *ev){
         if(!vars->file.isNull){
             QPointF posF = mousePosToImagePos(ev->pos());
             MyTool* tool = tools->currentTool();
-            if(tool){
-                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), vars->file.currentLayer(),
+            if(tool && tempImg){
+                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), tempImg,
                                 vars->color.getColor());
                 updateViewImgByRect(rect);
                 if(!limitPaintUpdate->isActive()){
@@ -144,7 +153,12 @@ void MyViewport::mouseMoveEvent(QMouseEvent *ev){
 }
 void MyViewport::mouseReleaseEvent(QMouseEvent *ev){
     if(ev->button() == Qt::LeftButton){
-        emit painted();
+        if(!vars->file.isNull){
+            QPainter p(&vars->file.currentLayer()->img);
+            p.drawImage(0, 0, *tempImg);
+            safeDelete(tempImg);
+            emit painted();
+        }
     }
 }
 void MyViewport::paintEvent(QPaintEvent *){
@@ -233,6 +247,9 @@ void MyViewport::updateViewImg(){
             int trueLayerAlpha = layer->mask ? layerAlpha * (255 - layer->mask->mask[j]) / 255 : layerAlpha;
             QRgb qjRgba = bits[j];//前景
             QRgb bjRgba = rgba[j];//背景
+            if(index == *vars->file.currentIndex && tempImg){
+                qjRgba = mixColor(qjRgba, reinterpret_cast<QRgb*>(tempImg->bits())[j]);
+            }
             uchar *pAlpha = reinterpret_cast<uchar*>(&qjRgba) + 3;
             *pAlpha = (uchar)(*pAlpha * trueLayerAlpha / 255);
             rgba[j] = mixColor(bjRgba, qjRgba);
@@ -261,6 +278,9 @@ void MyViewport::updateViewImgByRect(QRect rect){
                 int trueLayerAlpha = layer->mask ? layerAlpha * (255 - layer->mask->mask[pos]) / 255 : layerAlpha;
                 QRgb qjRgba = bits[pos];//前景
                 QRgb bjRgba = rgba[pos];//背景
+                if(index == *vars->file.currentIndex && tempImg){
+                    qjRgba = mixColor(qjRgba, reinterpret_cast<QRgb*>(tempImg->bits())[pos]);
+                }
                 uchar *pAlpha = reinterpret_cast<uchar*>(&qjRgba) + 3;
                 *pAlpha = (uchar)(*pAlpha * trueLayerAlpha / 255);
                 rgba[pos] = mixColor(bjRgba, qjRgba);
