@@ -4,7 +4,7 @@ bool isContains(int num1, int num2){
     return ((num1|num2)==num1);
 }
 
-void MyAdjustSize(int& w, int& h, int adjustW, int adjustH){
+void myAdjustSize(int& w, int& h, int adjustW, int adjustH){
     if( w==0 || h==0 )
         return;
     double kW = static_cast<double>(adjustW)/w;

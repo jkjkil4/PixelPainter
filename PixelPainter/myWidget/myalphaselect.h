@@ -4,6 +4,8 @@
 #include <QGroupBox>
 
 #include <QLabel>
+#include <QComboBox>
+#include <QListView>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
@@ -41,7 +43,9 @@ public:
 //------------------------
 class MyAlphaSelect : public QGroupBox
 {
-private:
+    Q_OBJECT
+public slots:
+    void slot_cbbIndexChanged(int index);
 
 public:
     explicit MyAlphaSelect(MyVars* vars, QWidget *parent = nullptr);
@@ -49,6 +53,7 @@ public:
 
     QLabel* labelAlpha = new QLabel("Alpha");
     MySpinBox* spinBoxAlpha = new MySpinBox;
+    QComboBox *cbbMixFlag = new QComboBox;
 
     _MyAlphaSelect::MyAlphaView* view = nullptr;
 

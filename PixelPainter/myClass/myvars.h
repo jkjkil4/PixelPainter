@@ -6,6 +6,8 @@
 
 #include <QDebug>
 
+enum MyMixFlag{ Mix, MixAndThicker, Replace };
+
 class MyColor
 {
 public:
@@ -23,7 +25,7 @@ public:
 
     int alpha = 255;
 
-    bool isMix = true;
+    int mixFlag = MyMixFlag::Mix;
 
     QRgb getColor(){
         return qRgba(r, g, b, alpha);

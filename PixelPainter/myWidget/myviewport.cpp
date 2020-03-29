@@ -1,9 +1,10 @@
 #include "myviewport.h"
 
-MyViewport::MyViewport(MyVars *vars, QSlider *slider, MyTools *tools, QWidget *parent) : QWidget(parent) {
+MyViewport::MyViewport(MyVars *vars, QSlider *slider, MyTools *tools, MyUndoAndRedo *unre, QWidget *parent) : QWidget(parent) {
     this->vars = vars;
     this->slider = slider;
     this->tools = tools;
+    this->unre = unre;
     setMinimumWidth(250);
     setMouseTracking(true);
 
@@ -26,6 +27,14 @@ MyViewport::MyViewport(MyVars *vars, QSlider *slider, MyTools *tools, QWidget *p
     limitPaintUpdate->setSingleShot(true);
     connect(limitPaintUpdate, &QTimer::timeout, [=](){
         update();
+    });
+    connect(checkMouse, &QTimer::timeout, [=](){
+        if(!QRect(0, 0, width(), height()).contains(mapFromGlobal(cursor().pos()))){
+            isMouseAt = false;
+            checkMouse->stop();
+            if(!vars->file.isNull)
+                update();
+        }
     });
 }
 MyViewport::~MyViewport(){
@@ -88,29 +97,48 @@ void MyViewport::mousePressEvent(QMouseEvent *ev){
         midButtonPoint = ev->pos();
     }else if( ev->button() == Qt::LeftButton ){
         if(!vars->file.isNull){
-            QPointF posF = mousePosToImagePos(ev->pos());
             MyTool* tool = tools->currentTool();
-            if(tempImg)
-                safeDelete(tempImg);
-            try {
-                tempImg = new QImage(vars->file.imageWidth, vars->file.imageHeight, QImage::Format_ARGB32);
-            } catch(std::bad_alloc &memExp) {
-                QMessageBox::critical(nullptr, "错误", "绘制失败\n" + QString(memExp.what()));
-                return;
-            }
-            tempImg->fill(QColor(0, 0, 0, 0));
             if(tool){
-                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), tempImg,
-                                vars->color.getColor(), true);
-                updateViewImgByRect(rect);
-                if(!limitPaintUpdate->isActive()){
-                    limitPaintUpdate->start(18);
+                if(tempImg)
+                    safeDelete(tempImg);
+                if(replaceFlags)
+                    safeDelete(replaceFlags);
+                tempImg = new QImage(vars->file.imageWidth, vars->file.imageHeight, QImage::Format_ARGB32);
+                if(tempImg->isNull()){
+                    safeDelete(tempImg);
+                    QMessageBox::critical(nullptr, "错误", "绘制失败");
+                    return;
                 }
+                int size = vars->file.imageWidth * vars->file.imageHeight;
+                if(vars->color.mixFlag == MyMixFlag::Replace){
+                    try {
+                        replaceFlags = new bool[size];
+                    } catch(std::bad_alloc &mem) {
+                        safeDeleteArray(replaceFlags);
+                        QMessageBox::critical(nullptr, "错误", "绘制失败\n"+QString(mem.what()));
+                        return;
+                    }
+                    for(int i = 0; i < size; i++)
+                        replaceFlags[i] = false;
+                }
+                tempImg->fill(QColor(0, 0, 0, 0));
+                QPointF posF = mousePosToImagePos(ev->pos());
+                QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), tempImg,
+                                vars->color.getColor(), true, replaceFlags);
+                setArea(rect);
+                updateViewImgByRect(rect);
+                if(!limitPaintUpdate->isActive())
+                    limitPaintUpdate->start(18);
             }
         }
     }
 }
 void MyViewport::mouseMoveEvent(QMouseEvent *ev){
+    if(!checkMouse->isActive()){
+        isMouseAt = true;
+        if(ev->buttons() == 0)
+            checkMouse->start(18);
+    }
     if( ev->buttons() & Qt::RightButton ){
         double deltaX = (double)(ev->x() - midButtonPoint.x())*100/scale;
         double deltaY = (double)(ev->y() - midButtonPoint.y())*100/scale;
@@ -139,7 +167,8 @@ void MyViewport::mouseMoveEvent(QMouseEvent *ev){
             MyTool* tool = tools->currentTool();
             if(tool && tempImg){
                 QRect rect = tool->paint(myGetIntGrid(posF.x()), myGetIntGrid(posF.y()), tempImg,
-                                vars->color.getColor());
+                                vars->color.getColor(), false, replaceFlags);
+                expandArea(rect);
                 updateViewImgByRect(rect);
                 if(!limitPaintUpdate->isActive()){
                     limitPaintUpdate->start(18);
@@ -152,11 +181,34 @@ void MyViewport::mouseMoveEvent(QMouseEvent *ev){
         update(tool->_updateRect(mousePosToImagePos(ev->pos()), viewPoint, scale, size()));
 }
 void MyViewport::mouseReleaseEvent(QMouseEvent *ev){
+    if(!checkMouse->isActive())
+        checkMouse->start(18);
     if(ev->button() == Qt::LeftButton){
         if(!vars->file.isNull){
-            QPainter p(&vars->file.currentLayer()->img);
-            p.drawImage(0, 0, *tempImg);
-            safeDelete(tempImg);
+            if(tempImg){
+                if(replaceFlags){
+                    QImage *img = &vars->file.currentLayer()->img;
+                    if(left != -1)
+                        unre->addImage(vars, *tempImg, *img, QRect(left, top, right - left, bottom - top), replaceFlags);
+                    QRgb *bits = reinterpret_cast<QRgb*>(img->bits());
+                    QRgb *tmpBits = reinterpret_cast<QRgb*>(tempImg->bits());
+                    int bitsSize = vars->file.imageWidth * vars->file.imageHeight;
+                    for(int i = 0; i < bitsSize; i++){
+                        if(replaceFlags[i]){
+                            bits[i] = tmpBits[i];
+                        }
+                    }
+                    safeDeleteArray(replaceFlags);
+                    safeDelete(tempImg);
+                }else{
+                    QImage *img = &vars->file.currentLayer()->img;
+                    if(left != -1)
+                        unre->addImage(vars, *tempImg, *img, QRect(left, top, right - left, bottom - top), replaceFlags);
+                    QPainter p(img);
+                    p.drawImage(0, 0, *tempImg);
+                    safeDelete(tempImg);
+                }
+            }
             emit painted();
         }
     }
@@ -214,11 +266,13 @@ void MyViewport::paintEvent(QPaintEvent *){
             }
         }
         //绘制工具
-        MyTool *tool = tools->currentTool();
-        if(tool){
-            p.setCompositionMode(QPainter::CompositionMode_Difference);
-            tool->_drawTool(&p);
-            p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        if(isMouseAt){
+            MyTool *tool = tools->currentTool();
+            if(tool){
+                p.setCompositionMode(QPainter::CompositionMode_Difference);
+                tool->_drawTool(&p);
+                p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            }
         }
     }
     jDrawRecFrame(&p, 0, 0, width(), height(), 1, Qt::black);
@@ -248,7 +302,13 @@ void MyViewport::updateViewImg(){
             QRgb qjRgba = bits[j];//前景
             QRgb bjRgba = rgba[j];//背景
             if(index == *vars->file.currentIndex && tempImg){
-                qjRgba = mixColor(qjRgba, reinterpret_cast<QRgb*>(tempImg->bits())[j]);
+                QRgb _qjRgba = mixColor(qjRgba, reinterpret_cast<QRgb*>(tempImg->bits())[j]);
+                if(vars->color.mixFlag == MyMixFlag::Replace && replaceFlags){
+                    if(replaceFlags[j]){
+                        _qjRgba = reinterpret_cast<QRgb*>(tempImg->bits())[j];
+                    }
+                }
+                qjRgba = _qjRgba;
             }
             uchar *pAlpha = reinterpret_cast<uchar*>(&qjRgba) + 3;
             *pAlpha = (uchar)(*pAlpha * trueLayerAlpha / 255);
@@ -271,6 +331,7 @@ void MyViewport::updateViewImgByRect(QRect rect){
             if(x<0 || x>=viewImg.width())
                 continue;
             int pos = x + y * viewImg.width();
+            rgba[pos] = qRgba(0, 0, 0, 0);
             for( int index = size - 1; index >= 0; index-- ){
                 QRgb *bits = reinterpret_cast<QRgb*>(file->layers[index]->img.bits());
                 MyLayer *layer = file->layers[index];
@@ -279,7 +340,13 @@ void MyViewport::updateViewImgByRect(QRect rect){
                 QRgb qjRgba = bits[pos];//前景
                 QRgb bjRgba = rgba[pos];//背景
                 if(index == *vars->file.currentIndex && tempImg){
-                    qjRgba = mixColor(qjRgba, reinterpret_cast<QRgb*>(tempImg->bits())[pos]);
+                    QRgb _qjRgba = mixColor(qjRgba, reinterpret_cast<QRgb*>(tempImg->bits())[pos]);
+                    if(vars->color.mixFlag == MyMixFlag::Replace && replaceFlags){
+                        if(replaceFlags[pos]){
+                            _qjRgba = reinterpret_cast<QRgb*>(tempImg->bits())[pos];
+                        }
+                    }
+                    qjRgba = _qjRgba;
                 }
                 uchar *pAlpha = reinterpret_cast<uchar*>(&qjRgba) + 3;
                 *pAlpha = (uchar)(*pAlpha * trueLayerAlpha / 255);
@@ -297,4 +364,49 @@ QPointF MyViewport::mousePosToImagePos(QPoint mouse){
     double posXToImg = posXToCenter*100/scale + viewPoint.x();
     double posYToImg = posYToCenter*100/scale + viewPoint.y();
     return QPointF(posXToImg, posYToImg);
+}
+
+void MyViewport::setArea(QRect rect){
+    //图像大小
+    int imageWidth = vars->file.imageWidth;
+    int imageHeight = vars->file.imageHeight;
+    //区域
+    int tmpLeft = qBound(0, rect.x(), imageWidth);
+    int tmpRight = qBound(0, rect.x() + rect.width(), imageWidth);
+    int tmpTop = qBound(0, rect.y(), imageHeight);
+    int tmpBottom = qBound(0, rect.y() + rect.height(), imageHeight);
+    //判断
+    if(tmpLeft != tmpRight && tmpTop != tmpBottom){
+        left = tmpLeft;
+        right = tmpRight;
+        top = tmpTop;
+        bottom = tmpBottom;
+    }else{
+        left = -1;
+    }
+}
+void MyViewport::expandArea(QRect rect){
+    if(left == -1){
+        setArea(rect);
+        return;
+    }
+    //图像大小
+    int imageWidth = vars->file.imageWidth;
+    int imageHeight = vars->file.imageHeight;
+    //区域
+    int tmpLeft = qBound(0, rect.x(), imageWidth);
+    int tmpRight = qBound(0, rect.x() + rect.width(), imageWidth);
+    int tmpTop = qBound(0, rect.y(), imageHeight);
+    int tmpBottom = qBound(0, rect.y() + rect.height(), imageHeight);
+    //判断
+    if(tmpLeft != tmpRight && tmpTop != tmpBottom){
+        if(tmpRight > 0)
+            left = qMin(tmpLeft, left);
+        if(tmpLeft < imageWidth)
+            right = qMax(right, tmpRight);
+        if(tmpBottom > 0)
+            top = qMin(tmpTop, top);
+        if(tmpTop < imageHeight)
+            bottom = qMax(bottom, tmpBottom);
+    }
 }

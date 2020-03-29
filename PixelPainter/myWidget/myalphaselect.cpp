@@ -68,6 +68,12 @@ MyAlphaSelect::MyAlphaSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
     view = new MyAlphaView(vars, spinBoxAlpha);
     view->setMinimumHeight(18);
     view->setMaximumHeight(18);
+    cbbMixFlag->setStyleSheet("QComboBox QAbstractItemView::item { min-height: 20px; min-width: 60px; }");
+    cbbMixFlag->setView(new QListView);
+    cbbMixFlag->addItems(QStringList() << "混合" << "混合并叠加" << "替换");
+    cbbMixFlag->setMinimumWidth(70);
+    cbbMixFlag->setMaximumWidth(70);
+    connect(cbbMixFlag, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_cbbIndexChanged(int)));
     setTitle("透明度");
     setMaximumSize(183, 62);
     setMinimumSize(183, 62);
@@ -77,6 +83,8 @@ MyAlphaSelect::MyAlphaSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
     lay1->setAlignment(Qt::AlignLeft);
     lay1->addWidget(labelAlpha);
     lay1->addWidget(spinBoxAlpha);
+    lay1->addStretch();
+    lay1->addWidget(cbbMixFlag);
 
     QVBoxLayout* layMain = new QVBoxLayout;
     layMain->setMargin(4);
@@ -86,6 +94,9 @@ MyAlphaSelect::MyAlphaSelect(MyVars *vars, QWidget *parent) : QGroupBox(parent){
 
     setLayout(layMain);
 
+}
+void MyAlphaSelect::slot_cbbIndexChanged(int index){
+    vars->color.mixFlag = index;
 }
 void MyAlphaSelect::otherColorChanged(){
     view->update();

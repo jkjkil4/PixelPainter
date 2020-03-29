@@ -8,7 +8,7 @@ class MyTool_Pen : public MyTool
 public:
     explicit MyTool_Pen(MyVars *vars);
     ~MyTool_Pen() override;
-    QRect _paint(int x, int y, QImage *img, QRgb col) override;
+    QRect _paint(int x, int y, QImage *img, QRgb col, bool *flags = nullptr) override;
     QRegion _updateRect(QPointF mousePos, QPointF viewPos, int scale, QSize viewSize) override;
     void _drawTool(QPainter *p) override;
 

@@ -6,7 +6,7 @@ Widget::Widget(QWidget *parent) : MyWidget(parent) {
     myToolSelect = new MyToolSelect(&vars, &tools);
     myGuideView = new MyGuideView(&vars);
     myLayersView = new MyLayersView(&vars);
-    myViewport = new MyViewport(&vars, myGuideView->slider, &tools);
+    myViewport = new MyViewport(&vars, myGuideView->slider, &tools, &myUndoAndRedo);
     connect(myColorSelect, &MyColorSelect::colorChanged, [=](){myAlphaSelect->otherColorChanged();});
     connect(myLayersView, &MyLayersView::layersChanged, [=](){myViewport->updateViewImg();});
     connect(myViewport, &MyViewport::painted, [=](){myLayersView->layersView->updateByIndex(myLayersView->layersView->currentIndex);});
@@ -67,7 +67,7 @@ Widget::Widget(QWidget *parent) : MyWidget(parent) {
 
     actUndo->setShortcut(tr("Ctrl+Z"));
     connect(actUndo, SIGNAL(triggered()), this, SLOT(slot_undo()));
-    actRedo->setShortcut(tr("Ctrl+R"));
+    actRedo->setShortcut(tr("Ctrl+Y"));
     connect(actRedo, SIGNAL(triggered()), this, SLOT(slot_redo()));
 
     connect(actHelp, SIGNAL(triggered()), this, SLOT(slot_help()));
@@ -162,10 +162,16 @@ void Widget::slot_saveFile(){
 }
 
 void Widget::slot_undo(){
-
+    if(myUndoAndRedo.undo()){
+        myViewport->updateViewImg();
+        myLayersView->layersView->updateByIndex(*vars.file.currentIndex);
+    }
 }
 void Widget::slot_redo(){
-
+    if(myUndoAndRedo.redo()){
+        myViewport->updateViewImg();
+        myLayersView->layersView->updateByIndex(*vars.file.currentIndex);
+    }
 }
 
 void Widget::slot_help(){
@@ -199,7 +205,7 @@ void Widget::mainImageChanged(){
     MyFile *file = &vars.file;
     int imgW = file->imageWidth;
     int imgH = file->imageHeight;
-    MyAdjustSize(imgW, imgH, pixView.width()-2, pixView.height()-2);
+    myAdjustSize(imgW, imgH, pixView.width()-2, pixView.height()-2);
     file->adjustWidth = imgW;
     file->adjustHeight = imgH;
     //更新

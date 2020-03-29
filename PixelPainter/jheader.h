@@ -9,12 +9,15 @@
 
 bool isContains(int num1, int num2);
 
-void MyAdjustSize(int& w, int& h, int adjustW, int adjustH);
+void myAdjustSize(int& w, int& h, int adjustW, int adjustH);
 double lerp(double v1, double v2, double sc);
 double myBoundF(double min, double value, double max);
 QRgb mixColor(QRgb bjRgba, QRgb qjRgba);
 template<typename T>inline void safeDelete(T*& p){
     if (p) { delete p; p = nullptr; }
+}
+template<typename T>inline void safeDeleteArray(T*& p){
+    if (p) { delete[] p; p = nullptr; }
 }
 inline int myGetIntGrid(double a){
     return a < 0 ? (int)a - 1 : (int)a;
