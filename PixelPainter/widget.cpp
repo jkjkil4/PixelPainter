@@ -164,13 +164,13 @@ void Widget::slot_saveFile(){
 void Widget::slot_undo(){
     if(myUndoAndRedo.undo()){
         myViewport->updateViewImg();
-        myLayersView->layersView->updateByIndex(*vars.file.currentIndex);
+        myLayersView->layersView->update();
     }
 }
 void Widget::slot_redo(){
     if(myUndoAndRedo.redo()){
         myViewport->updateViewImg();
-        myLayersView->layersView->updateByIndex(*vars.file.currentIndex);
+        myLayersView->layersView->update();
     }
 }
 

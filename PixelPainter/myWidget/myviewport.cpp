@@ -199,15 +199,14 @@ void MyViewport::mouseReleaseEvent(QMouseEvent *ev){
                         }
                     }
                     safeDeleteArray(replaceFlags);
-                    safeDelete(tempImg);
                 }else{
                     QImage *img = &vars->file.currentLayer()->img;
                     if(left != -1)
                         unre->addImage(vars, *tempImg, *img, QRect(left, top, right - left, bottom - top), replaceFlags);
                     QPainter p(img);
                     p.drawImage(0, 0, *tempImg);
-                    safeDelete(tempImg);
                 }
+                safeDelete(tempImg);
             }
             emit painted();
         }

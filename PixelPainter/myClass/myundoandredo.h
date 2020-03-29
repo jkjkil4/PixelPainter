@@ -34,7 +34,7 @@ public:
 
     QString fileName;
 
-    int index = 0;
+    MyLayer *layer = nullptr;
     QRect rect;
 };
 

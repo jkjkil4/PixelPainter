@@ -7,7 +7,7 @@ BlockImage::~BlockImage(){}
 BlockImage::BlockImage(MyVars *vars, QImage tmpImage, QImage layerImage, QRect rect, QString fileName, bool *flags){
     this->vars = vars;
     this->fileName = fileName;
-    this->index = *vars->file.currentIndex;
+    this->layer = vars->file.currentLayer();
     this->rect = rect;
     //调整区域
     int rectLeft = rect.x();
@@ -77,7 +77,7 @@ bool BlockImage::undo(){ //撤销
         //关闭文件
         fileUndo.close();
         //设置图像
-        QImage *currentImg = &vars->file.layers[index]->img;
+        QImage *currentImg = &layer->img;
         for(int j = 0; j < rect.height(); j++)
             for(int i = 0; i < rect.width(); i++)
                 currentImg->setPixel(rect.x() + i, rect.y() + j, img.pixel(i, j));
@@ -96,7 +96,7 @@ bool BlockImage::redo(){ //重做
         //关闭文件
         fileRedo.close();
         //设置图像
-        QImage *currentImg = &vars->file.layers[index]->img;
+        QImage *currentImg = &layer->img;
         for(int j = 0; j < rect.height(); j++)
             for(int i = 0; i < rect.width(); i++)
                 currentImg->setPixel(rect.x() + i, rect.y() + j, img.pixel(i, j));
